@@ -1,5 +1,6 @@
 from llama_cpp import Llama
 import os
+import argparse
 
 
 def init_cpp():
@@ -15,19 +16,29 @@ def init_cpp():
   
   return memory, llm
 
+def get_args():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--temp", type=float, default=0.0, required=False)
+  parser.add_argument("--personality", type=str, required=False)
+
+  args = parser.parse_args()
+  return args
+
 def main():
   memory, llm = init_cpp()
-  memory, llm = init_plain()
-  
+  args = get_args()
+   
   while True:
-    out = llm.create_chat_completion(messages=memory)["choices"][0]["message"]["content"]
+    out = llm.create_chat_completion(messages=memory, temperature=args.temp)["choices"][0]["message"]["content"]
+    # add output to memory
     memory.append({"role":"assistant", "content":out})
-    out = llm()
-    print(out + "\n")
+    print(" [AI]: " + out + "\n\n")
     voice = "say " + out.replace("'", "").replace("\n", " ")
-    
+    # speak
     os.system(voice)
-    memory.append({"role":"user", "content":input("")})
+    # ask for input and add to memory
+    prompt = input("\n [USER]: ")
+    memory.append({"role":"user", "content":prompt})
     
 
 if __name__ == "__main__":
