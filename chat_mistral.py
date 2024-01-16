@@ -1,5 +1,6 @@
 from llama_cpp import Llama
 import os
+import sys
 import argparse
 
 
@@ -29,15 +30,27 @@ def main():
   args = get_args()
    
   while True:
-    out = llm.create_chat_completion(messages=memory, temperature=args.temp)["choices"][0]["message"]["content"]
+    # creates a generator object if stream is true
+    out_gen = llm.create_chat_completion(messages=memory, temperature=args.temp, stream=True)
+    response = []
+    sys.stdout.write("\n [AI]: ")
+    for out in out_gen:
+      out = out["choices"][0]["delta"]
+      if "content" in out.keys():
+        word = out["content"]
+        sys.stdout.write(word)
+        response.append(word)
+      else:
+        sys.stdout.write("\n")
+    response = "".join(response)
+    
     # add output to memory
-    memory.append({"role":"assistant", "content":out})
-    print(" [AI]: " + out + "\n\n")
-    voice = "say " + out.replace("'", "").replace("\n", " ")
+    memory.append({"role":"assistant", "content":response})
+    voice = "say " + response.replace("'", "").replace("\n", " ")
     # speak
     os.system(voice)
     # ask for input and add to memory
-    prompt = input("\n [USER]: ")
+    prompt = input("\n [USER]: \n ")
     memory.append({"role":"user", "content":prompt})
     
 
