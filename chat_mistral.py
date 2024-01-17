@@ -21,6 +21,7 @@ def get_args():
   parser = argparse.ArgumentParser()
   parser.add_argument("--temp", type=float, default=0.0, required=False)
   parser.add_argument("--personality", type=str, required=False)
+  parser.add_argument("--silence", type=bool, default=False, required=False)
 
   args = parser.parse_args()
   return args
@@ -46,9 +47,10 @@ def main():
     
     # add output to memory
     memory.append({"role":"assistant", "content":response})
-    voice = "say " + response.replace("'", "").replace("\n", " ")
-    # speak
-    os.system(voice)
+    if not args.silence:
+      voice = "say " + response.replace("'", "").replace("\n", " ")
+      # speak
+      os.system(voice)
     # ask for input and add to memory
     prompt = input("\n [USER]: \n ")
     memory.append({"role":"user", "content":prompt})
